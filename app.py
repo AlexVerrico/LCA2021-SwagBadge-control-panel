@@ -1,5 +1,5 @@
-# LCA2021 SwagBadge Control Panel
-# Copyright (C) 2021  Alex Verrico
+# LCA2021 SwagBadge Control Panel. More details at https://github.com/AlexVerrico/LCA2021-SwagBadge-control-panel
+# Copyright (C) 2021  Alex Verrico (https://alexverrico.com/)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -13,9 +13,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-# A simple web interface for controlling a #LCA2021 Swag Badge over MQTT
-# More details at
 
 from flask import Flask, request, render_template, json
 import paho.mqtt.client as mqtt
