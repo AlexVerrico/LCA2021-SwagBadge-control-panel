@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>LCA2021 Badge Control</title>
+    <style>
+        @media (max-device-width: 480px){
+            body{
+                font-size: 4em;
+            }
+            input {
+                height:auto;
+                font-size: 1em;
+            }
+            button {
+                width:auto;
+                font-size: 1em;
+                padding:5px;
+            }
+
+        }
+        body{
+            background-color: black;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<div id="inputs_div">
+    <button onclick="clear_screen()">Clear the badge screen</button><br/>
+    <label for="log_text_input">Text to push to the bottom of the screen</label><br/>
+    <input type="text" id="log_text_input"><br/>
+    <button onclick="log_text()">Send text</button>
+    <button onclick="document.getElementById('log_text_input').value = ''">Clear Input</button><br/><br/>
+    <button onclick="reset_login()">Change Login</button>
+</div>
+
+<script>
+    var username = getCookie("username");
+    if (username == "") {
+        username = prompt("Please enter your username:", "");
+        if (username != "" && username != null) {
+            setCookie("username", username, 365);
+        }
+    }
+    var password = getCookie("password");
+    if (password == "") {
+        password = prompt("Please enter your password:", "");
+        if (password != "" && password != null) {
+            setCookie("password", password, 365);
+        }
+    }
+
+    const user_id = getCookie('username')
+    const user_pass = getCookie('password')
+
+
+    function reset_login(){
+        setCookie('username', '', -1)
+        setCookie('password', '', -1)
+        window.location = window.location;
+    }
+    function clear_screen(){
+        let url = "/api/v1/send/clear";
+        $.post(url, {'id': user_id, 'auth': user_pass});
+    }
+    function log_text(){
+        let url = "/api/v1/send/log_text";
+        let _data = document.getElementById('log_text_input').value;
+        $.post(url, {'id': user_id, 'auth': user_pass, 'data': _data})
+    }
+    function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i <ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+    }
+    function setCookie(cname, cvalue, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays*24*60*60*1000));
+        var expires = "expires="+ d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    }
+    
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</body>
+</html>

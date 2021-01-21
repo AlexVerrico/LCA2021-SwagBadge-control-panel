@@ -1,0 +1,6 @@
+.idea/
+venv/
+.env
+main.sqlite
+__pychache__/
+.private/
