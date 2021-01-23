@@ -31,6 +31,13 @@
     <input type="text" id="log_text_input"><br/>
     <button onclick="log_text()">Send text</button>
     <button onclick="document.getElementById('log_text_input').value = ''">Clear Input</button><br/><br/>
+    <label for="queue_time_input">interval in seconds:</label>
+    <input type="text" style="width: 2em" value="10" id="queue_time_input"><br/>
+    <label for="queue_text_input">Text to add to the queue</label><br/>
+    <input type="text" id="queue_text_input">  Messages in queue: <span id="queue_size"></span><br/>
+    <button onclick="queue_text()">Send text</button>
+    <button onclick="document.getElementById('queue_text_input').value = ''">Clear Input</button><br/><br/>
+    <button onclick="clear_queue()">Clear Queue</button><br/><br/>
     <button onclick="reset_login()">Change Login</button>
 </div>
 
@@ -67,6 +74,24 @@
         let url = "/api/v1/send/log_text";
         let _data = document.getElementById('log_text_input').value;
         $.post(url, {'id': user_id, 'auth': user_pass, 'data': _data})
+    }
+    function queue_text(){
+        let url = "/api/v1/queue/add";
+        let _text = document.getElementById('queue_text_input').value;
+        let _time = document.getElementById('queue_time_input').value;
+        $.post(url, {'id': user_id, 'auth': user_pass, 'data': `[{"time": "${_time}", "text": "${_text}"}]`});
+        document.getElementById("queue_text_input").value = '';
+    }
+    function clear_queue(){
+        let url = "/api/v1/queue/clear";
+        $.post(url, {'id': user_id, 'auth': user_pass});
+    }
+    window.setInterval("check_queue();", 1000);
+    function check_queue(){
+        let url = "/api/v1/queue/check";
+        $.post(url, {'id': user_id, 'auth': user_pass}, function( data ) {
+            document.getElementById('queue_size').innerText = data;
+        });
     }
     function getCookie(cname) {
     var name = cname + "=";

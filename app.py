@@ -1,4 +1,5 @@
 # LCA2021 SwagBadge Control Panel. More details at https://github.com/AlexVerrico/LCA2021-SwagBadge-control-panel
+#
 # Copyright (C) 2021  Alex Verrico (https://alexverrico.com/)
 #
 # This program is free software: you can redistribute it and/or modify
@@ -19,8 +20,11 @@ import paho.mqtt.client as mqtt
 import sqlite3
 from dotenv import load_dotenv
 import os
+from threading import Timer
+from queue import Queue
+from time import sleep
 
-env_vars = ['MQTT_CLIENT_ID', 'MQTT_SERVER_IP', 'MQTT_BADGE_TOPIC', 'PORT']
+env_vars = ['MQTT_CLIENT_ID', 'MQTT_SERVER_IP', 'MQTT_BADGE_TOPIC', 'PORT', 'BASE_PATH']
 load_dotenv()
 for i in env_vars:
     if os.getenv(i) is None:
@@ -30,7 +34,9 @@ app = Flask(__name__)                       #
 app.config['TEMPLATES_AUTO_RELOAD'] = True  # Configure flask
 
 api_base_url = '/api/v1/'
-db_path = 'main.sqlite'
+db_path = ''.join((os.getenv('BASE_PATH'), 'main.sqlite'))
+
+message_queue = Queue(maxsize=0)
 
 mqtt_client = mqtt.Client(os.getenv('MQTT_CLIENT_ID'))  # Configure mqtt
 
@@ -44,6 +50,20 @@ def auth(_id, _pass):
     if str(_pass) == str(_temp[0]):
         return True
     return False
+
+
+def process_message_queue():
+    while True:
+        if message_queue.empty() is False:
+            message = message_queue.get()
+            print(message['text'])
+            mqtt_client.connect(os.getenv('MQTT_SERVER_IP'))
+            mqtt_client.publish(os.getenv('MQTT_BADGE_TOPIC'), '(oled:log %s)' % message['text'])
+            mqtt_client.disconnect()
+            sleep(int(message['time']))
+        else:
+            sleep(0.1)
+            continue
 
 
 @app.route('/')
@@ -98,5 +118,45 @@ def api_send_light_pixels():
     return '', 200
 
 
+@app.route(''.join((api_base_url, 'queue/add')), methods=['POST'])
+def api_queue_add():
+    if 'id' not in request.values or 'auth' not in request.values or 'data' not in request.values:
+        return '', 400
+    _id = request.values['id']
+    _auth = request.values['auth']
+    _data = json.loads(request.values['data'])
+    if auth(_id, _auth) is False:
+        return '', 200
+    for i in _data:
+        message_queue.put(i)
+    return '', 200
+
+
+@app.route(''.join((api_base_url, 'queue/check')), methods=['POST'])
+def api_queue_check():
+    if 'id' not in request.values or 'auth' not in request.values:
+        return '', 400
+    _id = request.values['id']
+    _auth = request.values['auth']
+    if auth(_id, _auth) is False:
+        return '', 200
+    return json.jsonify(message_queue.qsize()),200
+
+
+@app.route(''.join((api_base_url, 'queue/clear')), methods=['POST'])
+def api_queue_clear():
+    if 'id' not in request.values or 'auth' not in request.values:
+        return '', 400
+    _id = request.values['id']
+    _auth = request.values['auth']
+    if auth(_id, _auth) is False:
+        return '', 200
+    while message_queue.empty() is False:
+        message_queue.get()
+    return '', 200
+
+
 if __name__ == '__main__':
+    t = Timer(0, process_message_queue)
+    t.start()
     app.run(host='0.0.0.0', port=int(os.getenv('PORT')))
