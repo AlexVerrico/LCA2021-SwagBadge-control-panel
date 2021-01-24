@@ -16,3 +16,33 @@ Rename the file `default.env` to `.env` and set the values inside it to match yo
 Rename the file `default.sqlite` to `main.sqlite` and add a username and password to the table `auth` in the database.  
 Run the program using `python app.py`  
 The server should now be running, to access it navigate to the port and IP address that you are running it on.  
+  ---
+  
+#### Note: 
+As of 24/1/21 an update for the swagbadge has being released (v05), which adds a "time since reset" timer to the screen.   
+While strictly speaking this doesn't interfere with this project, it does produce some interesting side effects.  
+To prevent these side-effects, you can disable this timer by editing the file `/applications/swagbadge.py` and changing these lines:
+```python
+def swagbadge_handler():
+    global timer
+    hours, minutes, seconds = convert_time(timer)
+    timer += 1
+    text = "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
+    screen = aiko.oled.oleds[0]
+    screen.fill_rect(0, 16, 128, 8, 0)
+    screen.text(text, 0, 16)
+    screen.show()
+```
+to this:
+```python
+def swagbadge_handler():
+    # global timer
+    # hours, minutes, seconds = convert_time(timer)
+    # timer += 1
+    # text = "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
+    # screen = aiko.oled.oleds[0]
+    # screen.fill_rect(0, 16, 128, 8, 0)
+    # screen.text(text, 0, 16)
+    # screen.show()
+    pass
+```
