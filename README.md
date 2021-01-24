@@ -16,6 +16,7 @@ Rename the file `default.env` to `.env` and set the values inside it to match yo
 Rename the file `default.sqlite` to `main.sqlite` and add a username and password to the table `auth` in the database.  
 Run the program using `python app.py`  
 The server should now be running, to access it navigate to the port and IP address that you are running it on.  
+
   ---
   
 #### Note: 
